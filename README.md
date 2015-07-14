@@ -24,6 +24,7 @@ SoTech Roots Bedrock for Heroku
 4. git commit -am "Initial commit"
 5. heroku create <your site name>
 6. git push heroku master
-7. export your local db using migrate db using the heroku app domain
-8. heroku addons:create cleardb
-9. run in mysql terminal -> --host=<cleardb host> --user=<cleardb user> --password=<cleardb password> --reconnect <cleardb name> < <your sqlfile name and location>
+7. Assign the new heroku subdomain to ste@sotechnology.co.uk
+8. export your local db using migrate db using the heroku app domain
+9. heroku addons:create cleardb
+10. run in mysql terminal -> --host=<cleardb host> --user=<cleardb user> --password=<cleardb password> --reconnect <cleardb name> < <your sqlfile name and location>
