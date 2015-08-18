@@ -32,4 +32,15 @@ SoTech Roots Bedrock for Heroku
 12. heroku config:set WP_ENV=production
 13. heroku config:set WP_SITEURL=http://example.com/wp
 14. heroku config:set WP_HOME=http://example.com
+15. Activate w3 offload and amazon web services plugin
+16. add a new user to sotech aws account
+17. add user key and key secret to wp config (details in amazon web services plugin)
+
+## Mail service
+
+# sendgrid
+1. install the sendgrid plugin
+2. add the sendgrid addon to the heroku directory
+3. retrieve the sendgrid credentials and add them to the sendgrid wordpress plugin
+
 
