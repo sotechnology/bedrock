@@ -14,7 +14,8 @@ SoTech Roots Bedrock for Heroku
   * `WP_HOME` - Full URL to WordPress home (http://example.com)
   * `WP_SITEURL` - Full URL to WordPress including subdirectory (http://example.com/wp)
 4. Sage theme already added, Add new theme(s) in `web/app/themes` as you would for a normal WordPress site.
-5. Access WP admin at `http://example.com/wp/wp-admin`
+5. If using sage theme navigate to folder and run "npm install" and then "bower install" 
+6. Access WP admin at `http://example.com/wp/wp-admin`
 
 ## Adding to Heroku
 
