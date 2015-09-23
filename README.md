@@ -18,23 +18,24 @@ SoTech Roots Bedrock for Heroku
 
 ## Adding to Heroku
 
-1. Remove Git Origin "git remote rm origin"
+1. git remote rm origin
 2. move to your theme and run "gulp --production" (make sure dist is not in git ignore)
 3. git init
 4. git add -A
 5. git commit -am "Initial commit"
-6. heroku create <your site name>
+6. heroku create your-site-name
 7. git push heroku master
 8. Assign the new heroku subdomain to ste@sotechnology.co.uk
-9. export your local db using migrate db using the heroku app domain
+9. export your local db using migrate db using the heroku app domain, once download move to root directory of your website
 10. heroku addons:create cleardb
-11. run in mysql terminal -> --host=<cleardb host> --user={cleardb user} --password={cleardb password} --reconnect {cleardb name} < {your sqlfile name and location}
+11. /Applications/MAMP/Library/bin/mysql --host={the-host-name} --user={cleardb user} --password={cleardb password} --reconnect {cleardb name} < {your sqlfile name and location} (dont add curlys)
 12. heroku config:set WP_ENV=production
 13. heroku config:set WP_SITEURL=http://example.com/wp
 14. heroku config:set WP_HOME=http://example.com
 15. Activate w3 offload and amazon web services plugin
 16. add a new user to sotech aws account
 17. add user key and key secret to wp config (details in amazon web services plugin)
+18. make sure to attch the full access policy to the aws bucket
 
 ## Mail service
 
