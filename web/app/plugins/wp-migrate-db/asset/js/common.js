@@ -1,10 +1,12 @@
 // global vars
-var hooks = [];
-var call_stack = [];
-var non_fatal_errors = '';
-var migration_error = false;
-var connection_data;
-var next_step_in_migration;
+var wpmdb = wpmdb || {};
+wpmdb.common = {
+	hooks: [],
+	call_stack: [],
+	non_fatal_errors: '',
+	migration_error: false
+};
+wpmdb.functions = {};
 
 /**
  * Toggle proper translated strings based on migration type selected.
@@ -32,25 +34,25 @@ function wpmdb_migration_type() {
 }
 
 function wpmdb_call_next_hook() {
-	if ( !call_stack.length ) {
-		call_stack = hooks;
+	if ( !wpmdb.common.call_stack.length ) {
+		wpmdb.common.call_stack = wpmdb.common.hooks;
 	}
 
-	var func = call_stack[0];
-	call_stack.shift();
-	window[func](); // Uses the string from the array to call the function of the same name
+	var func = wpmdb.common.call_stack[ 0 ];
+	wpmdb.common.call_stack.shift();
+	func.call( this );
 }
 
 function wpmdb_add_commas( number_string ) {
 	number_string += '';
-	var x = number_string.split( '.' );
-	var x1 = x[0];
-	var x2 = x.length > 1 ? '.' + x[1] : '';
+	var number_parts = number_string.split( '.' );
+	var integer = number_parts[ 0 ];
+	var decimal = 1 < number_parts.length ? '.' + number_parts[ 1 ] : '';
 	var rgx = /(\d+)(\d{3})/;
-	while ( rgx.test( x1 ) ) {
-		x1 = x1.replace( rgx, '$1' + ',' + '$2' );
+	while ( rgx.test( integer ) ) {
+		integer = integer.replace( rgx, '$1' + ',' + '$2' );
 	}
-	return x1 + x2;
+	return integer + decimal;
 }
 
 function wpmdb_parse_json( maybe_json ) {
@@ -59,7 +61,8 @@ function wpmdb_parse_json( maybe_json ) {
 		json_object = jQuery.parseJSON( maybe_json );
 	}
 	catch ( e ) {
-		// we simply return false here because the json data itself will never just contain a value of "false"
+
+		// We simply return false here because the json data itself will never just contain a value of "false"
 		return false;
 	}
 	return json_object;
@@ -91,12 +94,12 @@ function wpmdbGetAjaxErrors( title, code, text, jqXHR ) {
 	}
 
 	// Only add local connection issue if php errors (#144) or jqXHR has been provided
-	if ( jsonErrors || jqXHR !== undefined ) {
+	if ( jsonErrors || 'undefined' !== jqXHR ) {
 		html += '<strong>' + title + '</strong>' + ' &mdash; ';
 	}
 
 	// Only add extra error details if not php errors (#144) and jqXHR has been provided
-	if ( !jsonErrors && jqXHR !== undefined ) {
+	if ( !jsonErrors && 'undefined' !== jqXHR ) {
 		html += wpmdb_strings.status + ': ' + jqXHR.status + ' ' + jqXHR.statusText;
 		html += '<br /><br />' + wpmdb_strings.response + ':<br />';
 	}
@@ -112,6 +115,50 @@ function wpmdbGetAjaxErrors( title, code, text, jqXHR ) {
 	return html;
 }
 
+wpmdb.preg_quote = function( str, delimiter ) {
+
+	//  discuss at: http://phpjs.org/functions/preg_quote/
+	// original by: booeyOH
+	// improved by: Ates Goral (http://magnetiq.com)
+	// improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+	// improved by: Brett Zamir (http://brett-zamir.me)
+	// bugfixed by: Onno Marsman
+	//   example 1: preg_quote("$40");
+	//   returns 1: '\\$40'
+	//   example 2: preg_quote("*RRRING* Hello?");
+	//   returns 2: '\\*RRRING\\* Hello\\?'
+	//   example 3: preg_quote("\\.+*?[^]$(){}=!<>|:");
+	//   returns 3: '\\\\\\.\\+\\*\\?\\[\\^\\]\\$\\(\\)\\{\\}\\=\\!\\<\\>\\|\\:'
+
+	return String( str )
+		.replace( new RegExp( '[.\\\\+*?\\[\\^\\]$(){}=!<>|:\\' + ( delimiter || '' ) + '-]', 'g' ), '\\$&' );
+};
+
+wpmdb.table_is = function( table_prefix, desired_table, given_table ) {
+	if ( ( table_prefix + desired_table ).toLowerCase() === given_table.toLowerCase() ) {
+		return true;
+	}
+
+	var escaped_given_table = wpmdb.preg_quote( given_table );
+	var regex = new RegExp( table_prefix + '([0-9]+)_' + desired_table, 'i' );
+	var results = regex.exec( escaped_given_table );
+	return null != results;
+};
+
+wpmdb.subsite_for_table = function( table_prefix, table_name ) {
+	var escaped_table_name = wpmdb.preg_quote( table_name );
+	var regex = new RegExp( table_prefix + '([0-9]+)_', 'i' );
+	var results = regex.exec( escaped_table_name );
+
+	if ( null === results ) {
+		return 1;
+	} else {
+		return results[ 1 ];
+	}
+};
+
 (function( $ ) {
+
 	// jQuery code here
+
 })( jQuery );
