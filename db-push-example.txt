@@ -1,0 +1,6 @@
+
+// DATABASE COMMAND - REMOVE DOUBLE CURLY BRACES
+/Applications/MAMP/Library/bin/mysql --host={{url}} --user={{username}} --password={{password}} --reconnect {{database-name}} < {{file path and name to the sql file you want to upload}}
+
+// HEROKU CONFIG CLEARDB DATABASE OUTPUT
+mysql://b123c70d6b3690:f1232258@us-cdbr-iron-east-02.cleardb.net/heroku_6d54f123f992b1d?reconnect=true
