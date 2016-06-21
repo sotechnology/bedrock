@@ -3,8 +3,9 @@
 include_once(dirname(dirname(__FILE__)) . '/CFDBFilterParser.php');
 include_once(dirname(dirname(__FILE__)) . '/CFDBValueConverter.php');
 include_once(dirname(dirname(__FILE__)) . '/DereferenceShortcodeVars.php');
+include_once('SquashOutputUnitTest.php');
 
-class CFDBFilterParserTest extends PHPUnit_Framework_TestCase {
+class CFDBFilterParserTest extends SquashOutputUnitTest {
 
 
     public function test1() {
@@ -12,7 +13,7 @@ class CFDBFilterParserTest extends PHPUnit_Framework_TestCase {
         $filters = preg_split('/&&|\|\|/', $filterText, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
 
         $this->assertEquals($filterText, $filters[0]);
-        //print_r($filters);
+        print_r($filters);
     }
 
     public function test2() {
@@ -22,7 +23,7 @@ class CFDBFilterParserTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('aaa=bbb', $filters[0]);
         $this->assertEquals('ccc=ddd', $filters[1]);
         $this->assertEquals('eee<>fff', $filters[2]);
-        //print_r($filters);
+        print_r($filters);
     }
 
     public function test3() {
@@ -32,7 +33,7 @@ class CFDBFilterParserTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('aaa=bbb', $filters[0]);
         $this->assertEquals('ccc=ddd', $filters[1]);
         $this->assertEquals('eee<>fff', $filters[2]);
-        //print_r($filters);
+        print_r($filters);
     }
 
     public function test4() {
@@ -44,7 +45,7 @@ class CFDBFilterParserTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('ccc=ddd', $filters[2]);
         $this->assertEquals('&&', $filters[3]);
         $this->assertEquals('eee<>fff', $filters[4]);
-        //print_r($filters);
+        print_r($filters);
     }
 
     public function test5() {
@@ -881,7 +882,8 @@ class CFDBFilterParserTest extends PHPUnit_Framework_TestCase {
         $p = new CFDBFilterParser;
         $array = $p->parseFunction($filterText);
         $this->assertEquals('funct', $array[0]);
-        $this->assertEquals(1, count($array));
+        $this->assertEquals(' ', $array[1]);
+        $this->assertEquals(2, count($array));
     }
     public function testParseFunction_noParams3() {
         $filterText = ' funct()';
@@ -904,7 +906,8 @@ class CFDBFilterParserTest extends PHPUnit_Framework_TestCase {
         $p = new CFDBFilterParser;
         $array = $p->parseFunction($filterText);
         $this->assertEquals('funct', $array[0]);
-        $this->assertEquals(1, count($array));
+        $this->assertEquals(' ', $array[1]);
+        $this->assertEquals(2, count($array));
     }
 
     public function testParseFunction_1param() {
@@ -932,7 +935,7 @@ class CFDBFilterParserTest extends PHPUnit_Framework_TestCase {
         $array = $p->parseFunction($filterText);
         $this->assertEquals('funct', $array[0]);
         $this->assertEquals('hello', $array[1]);
-        $this->assertEquals('there', $array[2]);
+        $this->assertEquals(' there', $array[2]);
         $this->assertEquals(3, count($array));
     }
 
@@ -941,8 +944,8 @@ class CFDBFilterParserTest extends PHPUnit_Framework_TestCase {
         $p = new CFDBFilterParser;
         $array = $p->parseFunction($filterText);
         $this->assertEquals('funct', $array[0]);
-        $this->assertEquals('hello', $array[1]);
-        $this->assertEquals('there', $array[2]);
+        $this->assertEquals(' hello ', $array[1]);
+        $this->assertEquals(' there ', $array[2]);
         $this->assertEquals(3, count($array));
     }
 
@@ -972,7 +975,7 @@ class CFDBFilterParserTest extends PHPUnit_Framework_TestCase {
         $array = $p->parseFunction($filterText);
         $this->assertEquals('funct', $array[0]);
         $this->assertEquals('$_POST(lname)', $array[1]);
-        $this->assertEquals('$_GET(fname)', $array[2]);
+        $this->assertEquals(' $_GET(fname)', $array[2]);
         $this->assertEquals(3, count($array));
     }
 
@@ -984,7 +987,8 @@ class CFDBFilterParserTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('hello', $array[1]);
         $this->assertEquals('there', $array[2]);
         $this->assertEquals('buddy', $array[3]);
-        $this->assertEquals(4, count($array));
+        $this->assertEquals('', $array[4]);
+        $this->assertEquals(5, count($array));
     }
 
     public function testParseFunction_danglingParam2() {
@@ -995,7 +999,8 @@ class CFDBFilterParserTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('hello', $array[1]);
         $this->assertEquals('there', $array[2]);
         $this->assertEquals('buddy', $array[3]);
-        $this->assertEquals(4, count($array));
+        $this->assertEquals(' ', $array[4]);
+        $this->assertEquals(5, count($array));
     }
 
     public function testParseFunction_danglingParam3() {
@@ -1003,10 +1008,12 @@ class CFDBFilterParserTest extends PHPUnit_Framework_TestCase {
         $p = new CFDBFilterParser;
         $array = $p->parseFunction($filterText);
         $this->assertEquals('funct', $array[0]);
-        $this->assertEquals('hello', $array[1]);
-        $this->assertEquals('there', $array[2]);
-        $this->assertEquals('buddy', $array[3]);
-        $this->assertEquals(4, count($array));
+        $this->assertEquals('', $array[1]);
+        $this->assertEquals('hello', $array[2]);
+        $this->assertEquals('there', $array[3]);
+        $this->assertEquals('buddy', $array[4]);
+        $this->assertEquals(' ', $array[5]);
+        $this->assertEquals(6, count($array));
     }
 
     public function testParseFunction_danglingParam4() {
@@ -1014,10 +1021,12 @@ class CFDBFilterParserTest extends PHPUnit_Framework_TestCase {
         $p = new CFDBFilterParser;
         $array = $p->parseFunction($filterText);
         $this->assertEquals('funct', $array[0]);
-        $this->assertEquals('hello', $array[1]);
-        $this->assertEquals('there', $array[2]);
-        $this->assertEquals('buddy', $array[3]);
-        $this->assertEquals(4, count($array));
+        $this->assertEquals('', $array[1]);
+        $this->assertEquals(' hello', $array[2]);
+        $this->assertEquals('there', $array[3]);
+        $this->assertEquals('buddy', $array[4]);
+        $this->assertEquals(' ', $array[5]);
+        $this->assertEquals(6, count($array));
     }
 
     public function testParseFunction_danglingParam5() {
@@ -1025,10 +1034,14 @@ class CFDBFilterParserTest extends PHPUnit_Framework_TestCase {
         $p = new CFDBFilterParser;
         $array = $p->parseFunction($filterText);
         $this->assertEquals('funct', $array[0]);
-        $this->assertEquals('hello', $array[1]);
-        $this->assertEquals('there', $array[2]);
-        $this->assertEquals('buddy', $array[3]);
-        $this->assertEquals(4, count($array));
+        $this->assertEquals('', $array[1]);
+        $this->assertEquals(' hello', $array[2]);
+        $this->assertEquals(' ', $array[3]);
+        $this->assertEquals('there', $array[4]);
+        $this->assertEquals('', $array[5]);
+        $this->assertEquals('buddy', $array[6]);
+        $this->assertEquals(' ', $array[7]);
+        $this->assertEquals(8, count($array));
     }
 
 

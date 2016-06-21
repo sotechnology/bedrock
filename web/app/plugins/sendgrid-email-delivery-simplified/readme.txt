@@ -3,12 +3,12 @@ Contributors: team-rs
 Donate link: http://sendgrid.com/
 Tags: email, email reliability, email templates, sendgrid, smtp, transactional email, wp_mail,email infrastructure, email marketing, marketing email, deliverability, email deliverability, email delivery, email server, mail server, email integration, cloud email
 Requires at least: 3.3
-Tested up to: 4.3
-Stable tag: 1.6.7
+Tested up to: 4.4
+Stable tag: 1.8.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Send emails throught Sendgrid from your WordPress installation using SMTP or API integration.
+Send emails throught SendGrid from your WordPress installation using SMTP or API integration.
 
 == Description ==
 
@@ -22,7 +22,9 @@ To have the SendGrid plugin running after you have activated it, go to the plugi
 
 You can also set default values for the "Name", "Sending Address" and the "Reply Address", so that you don't need to set these headers every time you want to send an email from your application.
 
-You can set the template ID to be used in all your emails on the settings page or you can set it for each email in headers. 
+You can set the template ID to be used in all your emails on the settings page or you can set it for each email in headers.
+
+You can have an individual email sent to each recipient by setting x-smtpapi-to in headers: `'x-smtpapi-to: address1@sendgrid.com,address2@sendgrid.com'`. Note: when using SMTP method you need to have also the `to` address set (this may be dummy data since will be overwritten with the addresses from x-smtpapi-to) in order to be able to send emails. 
 
 Emails are tracked and automatically tagged for statistics within the SendGrid Dashboard. You can also add general tags to every email sent, as well as particular tags based on selected emails defined by your requirements. 
 
@@ -42,7 +44,7 @@ Where:
 * `$to` - Array or comma-separated list of email addresses to send message.
 * `$subject` - Email subject
 * `$message` - Message contents
-* `$headers` - Array or "\n" separated  list of additional headers. Optional.
+* `$headers` - Array or SendGrid\Email() object. Optional.
 * `$attachments` - Array or "\n"/"," separated list of files to attach. Optional.
 
 The wp_mail function is sending text emails as default. If you want to send an email with HTML content you have to set the content type to 'text/html' running `add_filter('wp_mail_content_type', 'set_html_content_type');` function before to `wp_mail()` one.
@@ -51,18 +53,20 @@ After wp_mail function you need to run the `remove_filter('wp_mail_content_type'
 
 Example about how to send an HTML email using different headers:
 
-`$subject = 'test plugin';
+Using array for $headers:
+
+`$subject = 'Test SendGrid plugin';
 $message = 'testing WordPress plugin';
-$to = 'address1@sendgrid.com, Address2 <address2@sendgrid.com@>, address3@sendgrid.com';
-or
 $to = array('address1@sendgrid.com', 'Address2 <address2@sendgrid.com>', 'address3@sendgrid.com');
  
 $headers = array();
 $headers[] = 'From: Me Myself <me@example.net>';
 $headers[] = 'Cc: address4@sendgrid.com';
 $headers[] = 'Bcc: address5@sendgrid.com';
-$headers[] = 'unique-args:customer=mycustomer;location=mylocation'
-$headers[] = 'template: templateID'
+$headers[] = 'unique-args:customer=mycustomer;location=mylocation';
+$headers[] = 'categories: category1, category2';
+$headers[] = 'template: templateID';
+$headers[] = 'x-smtpapi-to: address1@sendgrid.com,address2@sendgrid.com';
  
 $attachments = array('/tmp/img1.jpg', '/tmp/img2.jpg');
  
@@ -71,6 +75,60 @@ $mail = wp_mail($to, $subject, $message, $headers, $attachments);
  
 remove_filter('wp_mail_content_type', 'set_html_content_type');`
 
+
+Using SendGrid\Email() for $headers:
+
+`$subject = 'Test SendGrid plugin';
+$message = 'testing WordPress plugin';
+$to = array('address1@sendgrid.com', 'Address2 <address2@sendgrid.com>', 'address3@sendgrid.com');
+ 
+$headers = new SendGrid\Email();
+$headers->setFromName("Me Myself")
+        ->setFrom("me@example.net")
+        ->setCc("address4@sendgrid.com")
+        ->setBcc("address5@sendgrid.com")
+        ->setUniqueArgs(array('customer' => 'mycustomer', 'location' => 'mylocation'))
+        ->addCategory('category1')
+        ->addCategory('category2')
+        ->setTemplateId('templateID');
+ 
+$attachments = array('/tmp/img1.jpg', '/tmp/img2.jpg');
+ 
+add_filter('wp_mail_content_type', 'set_html_content_type');
+$mail = wp_mail($to, $subject, $message, $headers, $attachments);
+ 
+remove_filter('wp_mail_content_type', 'set_html_content_type');`
+
+= How to use Substitution and Sections =
+
+`$subject = 'Hey %name%, you work at %place%';
+$message = 'testing WordPress plugin';
+$to = array('address1@sendgrid.com');
+
+$headers = new SendGrid\Email();
+$headers
+    ->addSmtpapiTo("john@somewhere.com")
+    ->addSmtpapiTo("harry@somewhere.com")
+    ->addSmtpapiTo("Bob@somewhere.com")
+    ->addSubstitution("%name%", array("John", "Harry", "Bob"))
+    ->addSubstitution("%place%", array("%office%", "%office%", "%home%"))
+    ->addSection("%office%", "an office")
+    ->addSection("%home%", "your house")
+;
+
+$mail = wp_mail($to, $subject, $message, $headers);`
+
+More examples for using SendGrid SMTPAPI header: <https://github.com/sendgrid/sendgrid-php#smtpapi>
+
+= Using categories =
+
+Categories used for emails can be set:
+
+* globally, for all emails sent, by setting the 'Categories' field in the 'Mail settings' section
+* per email by adding the category in the headers array: `$headers[] = 'categories: category1, category2';`
+
+If you would like to configure categories for statistics, you can configure it by setting the 'Categories' field in the 'Statistics settings' section
+
 == Installation ==
 
 Requirements:
@@ -78,6 +136,7 @@ Requirements:
 1. PHP version >= 5.3.0
 2. You need to have PHP-curl extension enabled in order to send attachments.
 3. To send emails through SMTP you need to install also the 'Swift Mailer' plugin.
+4. If wp_mail() function has been declared by another plugin that you have installed, you won't be able to use the SendGrid plugin
 
 To upload the SendGrid Plugin .ZIP file:
 
@@ -96,7 +155,8 @@ To auto install the SendGrid Plugin from the WordPress admin:
 
 SendGrid settings can optionally be defined as global variables (wp-config.php):
 
-1. Set credentials (You can use credentials or Api key. If using credentials, both need to be set in order to get credentials from variables and not from the database):
+1. Set credentials (You can use credentials or Api key. If using credentials, both need to be set in order to get credentials from variables and not from the database. If using API key you need to make sure you set the Mail Send permissions to FULL ACCESS, Stats to READ ACCESS and Template Engine to READ or FULL ACCESS when you created the api key on SendGrid side, so you can send emails and see statistics on wordpress):
+    * Auth method ('apikey' or 'credentials'): define('SENDGRID_AUTH_METHOD', 'apikey');
     * Username: define('SENDGRID_USERNAME', 'sendgrid_username');
     * Password: define('SENDGRID_PASSWORD', 'sendgrid_password');
     * API key:  define('SENDGRID_API_KEY', 'sendgrid_api_key');
@@ -108,12 +168,39 @@ SendGrid settings can optionally be defined as global variables (wp-config.php):
     * Reply to email: define('SENDGRID_REPLY_TO', 'reply_to@example.com');
     * Categories: define('SENDGRID_CATEGORIES', 'category_1,category_2');
     * Template: define('SENDGRID_TEMPLATE', 'templateID');
+    * Content-type: define('SENDGRID_CONTENT_TYPE', 'html');
 
 == Frequently asked questions ==
 
 = What credentials do I need to add on settings page =
 
-Create a SendGrid account at <a href="http://sendgrid.com/partner/wordpress" target="_blank">http://sendgrid.com/partner/wordpress</a> and use these credentials.
+Create a SendGrid account at <a href="http://sendgrid.com/partner/wordpress" target="_blank">https://sendgrid.com/partner/wordpress</a> and generate a new API key on <https://app.sendgrid.com/settings/api_keys>.
+
+= How can I define a plugin setting to be used for all sites =
+
+Add it into your wp-config.php file. Example: `define('SENDGRID_API_KEY', 'your_api_key');`.
+
+= How to use SendGrid with WP Better Emails plugin =
+
+If you have WP Better Emails plugin installed and you want to use the template defined here instead of the SendGrid template you can add the following code in your functions.php file from your theme:
+
+`function use_wpbe_template( $message, $content_type ) {   
+    global $wp_better_emails;
+    if ( 'text/plain' == $content_type ) {
+      $message = $wp_better_emails->process_email_text( $message );
+    } else {
+      $message = $wp_better_emails->process_email_html( $message );
+    }
+
+    return $message;
+}
+add_filter( 'sendgrid_override_template', 'use_wpbe_template', 10, 2 );`
+
+Using the default templates from WP Better Emails will cause all emails to be sent as HTML (i.e. text/html content-type). In order to send emails as plain text (i.e. text/plain content-type) you should remove the HTML Template from WP Better Emails settings page. This is can be done by removing the '%content%' tag from the HTML template.
+
+= Why are my emails sent as HTML instead of plain text =
+
+For a detailed explanation see this page: https://support.sendgrid.com/hc/en-us/articles/200181418-Plain-text-emails-converted-to-HTML
 
 == Screenshots ==
 
@@ -127,9 +214,50 @@ Create a SendGrid account at <a href="http://sendgrid.com/partner/wordpress" tar
 8. Select the time interval for which you want to see SendGrid statistics and charts.
 9. Now you are able to configure port number when using SMTP method.
 10. You are able to configure what template to use for sending emails.
+11. You are able to configure categories for which you would like to see your stats. 
+12. You can use substitutions for emails.
 
 == Changelog ==
 
+= 1.8.1 =
+* Added possibility to override the email template
+= 1.8.0 =
+* Added SendGrid\Email() for $header
+* Fix Send Test form not being displayed issue
+= 1.7.6 =
+* Updated validation for email addresses in the headers field of the send test email form
+* Add ability to have and individual email sent to each recipient by setting x-smtpapi-to in headers
+= 1.7.5 =
+* Fixed an issue with the reset password email from Wordpress
+* Updated validation for email addresses
+* Fixed an issue where some errors were not displayed on the settings page
+* Add substitutions functionality
+= 1.7.4 =
+* Fixed some failing requests during API Key checks
+* Fixed an error that appeared on fresh installs regarding invalid port setting
+= 1.7.3 =
+* Add global config for content-type
+* Validate send_method and port set in config file
+* Be able to define categories for which you would like to see your stats
+= 1.7.2 =
+* Check your credentials after updating, you might need to reenter your credentials
+* Fixed mcrypt library depencency issue
+= 1.7.1 =
+* BREAKING CHANGE: Don't make update if you don't have mcrypt php library enabled
+* Fixed a timeout issue from version 1.7.0
+= 1.7.0 = 
+* BREAKING CHANGE : wp_mail() now returns only true/false to mirror the return values of the original wp_mail(). If you have written something custom in your function.php that depends on the old behavior of the wp_mail() you should check your code to make sure it will still work right with boolean as return value instead of array
+* BREAKING CHANGE: Don't make update if you don't have mcrypt php library enabled
+* Added the possibility of setting the api key or username/password empty
+* Added the possibility of selecting the authentication method
+* Removed dependency on cURL, now all API requests are made through Wordpress
+* Sending mail via SMTP now supports API keys
+* Security improvements
+* Refactored old code
+= 1.6.9 =
+* Add categories in headers, add errror message on statistics page if API key is not having permissions
+= 1.6.8 =
+* Update api_key validation
 = 1.6.7 =
 * Ability to use email templates, fix category statistics, display sender test form if we only have sending errors
 = 1.6.6 =
@@ -193,6 +321,45 @@ Create a SendGrid account at <a href="http://sendgrid.com/partner/wordpress" tar
 
 == Upgrade notice ==
 
+= 1.8.1 =
+* Added possibility to override the email template
+= 1.8.0 =
+* Added SendGrid\Email() for $header
+* Fix Send Test form not being displayed issue
+= 1.7.6 =
+* Updated validation for email addresses in the headers field of the send test email form
+* Add ability to have and individual email sent to each recipient by setting x-smtpapi-to in headers
+= 1.7.5 =
+* Fixed an issue with the reset password email from Wordpress
+* Updated validation for email addresses
+* Fixed an issue where some errors were not displayed on the settings page
+* Add substitutions functionality
+= 1.7.4 =
+* Fixed some failing requests during API Key checks
+* Fixed an error that appeared on fresh installs regarding invalid port setting
+= 1.7.3 =
+* Add global config for content-type
+* Validate send_method and port set in config file
+* Be able to define categories for which you would like to see your stats
+= 1.7.2 =
+* Check your credentials after updating, you might need to reenter your credentials
+* Fixed mcrypt library depencency issue
+= 1.7.1 =
+* BREAKING CHANGE: Don't make update if you don't have mcrypt php library enabled
+* Fixed a timeout issue from version 1.7.0
+= 1.7.0 = 
+* BREAKING CHANGE : wp_mail() now returns only true/false to mirror the return values of the original wp_mail(). If you have written something custom in your function.php that depends on the old behavior of the wp_mail() you should check your code to make sure it will still work right with boolean as return value instead of array
+* BREAKING CHANGE: Don't make update if you don't have mcrypt php library enabled
+* Added the possibility of setting the api key or username/password empty
+* Added the possibility of selecting the authentication method
+* Removed dependency on cURL, now all API requests are made through Wordpress
+* Sending mail via SMTP now supports API keys
+* Security improvements
+* Refactored old code
+= 1.6.9 =
+* Add categories in headers, add errror message on statistics page if API key is not having permissions
+= 1.6.8 =
+* Update api_key validation
 = 1.6.7 =
 * Ability to use email templates, fix category statistics, display sender test form if we only have sending errors
 = 1.6.6 =

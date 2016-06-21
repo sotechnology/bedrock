@@ -33,11 +33,11 @@
     }
   ],
   "require": {
-    "php": "5.6.*",
+    "php": ">=5.5",
     "composer/installers": "~1.0.12",
     "vlucas/phpdotenv": "^2.0.1",
-    "ext-gd": "*",
-    "johnpbloch/wordpress": "4.4"
+    "johnpbloch/wordpress": "4.5.2",
+    "ext-gd": "*"
   },
   "extra": {
     "installer-paths": {
